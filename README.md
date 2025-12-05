@@ -6,6 +6,15 @@
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss)
 ![Gemini](https://img.shields.io/badge/Gemini_2.0-Flash-4285F4?logo=google)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+<div align="center">
+
+![GOLIATH-OS Banner](screenshots/timer.png)
+
+*"La liberté est un bug"™ — GOLIATH-OS v6.6.6*
+
+</div>
 
 ## 🎮 Concept
 
@@ -107,17 +116,65 @@ Chat'bruti/
 
 ## 📸 Screenshots
 
-### Timer Page
-> Compte à rebours menaçant avec bouton qui s'enfuit
+### 1️⃣ Timer Page (`/`)
+> Compte à rebours menaçant avec bouton "PAYEZ SVP" qui vous traque ! GOLIATH-OS v6.6.6 — "La liberté est un bug"™
 
-### ChatBot
-> Interface colorée avec avatars changeants et réponses absurdes
+![Timer Page - GOLIATH-OS](screenshots/timer.png)
 
-### Crash Scene
-> BSOD parodique avec flood d'erreurs et tête de mort
+**Features visibles :**
+- 💀 Logo GOLIATH-OS animé
+- ⏱️ Compte à rebours "Installation forcée dans..."
+- 💳 Boutons "PAYEZ SVP", "MISE À JOUR: 99.99€", "ERREUR 402"
+- 📊 Barre de progression "WINDOWS 47 REQUIS"
+- ⚠️ Alertes : "Tentative de fuite détectée: BLOQUÉE"
+- 🎮 Jauge de chaos en bas à gauche
 
-### Utopia
-> NIRD Village avec ambiance nature et liberté
+---
+
+### 2️⃣ ChatBot Page (`/chat`)
+> Interface colorée avec le philosophe absurde Chat'bruti et son CrazyBot voleur !
+
+![ChatBot - Philosophe de Comptoir](screenshots/chatbot.png)
+
+**Features visibles :**
+- 🧠 Avatar du bot qui change (ici: cerveau rose)
+- 💬 Messages avec style glassmorphism
+- 🏃 CrazyBot animé qui vole des éléments (personnage bleu avec sac)
+- 🎭 Badges : Absurde, Cafféiné, Pseudo-sage, Canardesque, Cosmique, Hilarant
+- 🔊 Contrôles son et parole
+- 🎲 Bouton événement fou
+
+---
+
+### 3️⃣ Crash Page (`/crash`)
+> BSOD parodique — Quand vous dites un mot interdit, GOLIATH-OS crashe !
+
+![Crash Scene - BSOD](screenshots/crash.png)
+
+**Features visibles :**
+- :( Émoji triste style Windows BSOD
+- 💬 "Your GOLIATH-OS ran into a problem and needs to restart"
+- 🆓 "A fatal dose of digital freedom was administered to the system"
+- 🔓 Stop code: `LIBERTY_EXCEPTION_NOT_HANDLED`
+- 🔄 "Collecting freedom data... 100% complete"
+- 🔗 Recherche suggérée: "NIRD digital independence"
+
+---
+
+### 4️⃣ Utopia Page (`/utopia`)
+> NIRD Village — Bienvenue dans le monde de la liberté numérique !
+
+![Utopia - NIRD Village](screenshots/utopia.png)
+
+**Features visibles :**
+- 🌿 Ambiance nature avec feuilles tombantes
+- 🛡️ Message de victoire "Vous avez vaincu GOLIATH-OS !"
+- 🔨 La Forge — Outils libres (OpenSAND, ROHC, LibreOffice...)
+- 🛠️ L'Atelier — Réparer, réutiliser (Linux sur vieux PC, Repair Cafés...)
+- 📚 L'École Libre — Former les citoyens numériques (Lycée Carnot, Ateliers Linux...)
+- 📊 Statistiques animées, Timeline, Témoignages, Manifeste...
+
+---
 
 ## 🤝 Contribution
 

@@ -41,6 +41,9 @@ export default {
         'matrix-fall': 'matrixFall 2s linear infinite',
         'drunk': 'drunk 0.5s ease-in-out infinite',
         'bounce-slow': 'bounce 2s infinite',
+        'widget-fall': 'widgetFall 3s ease-in forwards',
+        'spin-slow': 'spin 3s linear infinite',
+        'rebuild': 'rebuild 0.5s ease-out forwards',
       },
       keyframes: {
         glitch: {
@@ -84,6 +87,17 @@ export default {
         drunk: {
           '0%, 100%': { transform: 'rotate(-2deg) translateX(-5px)' },
           '50%': { transform: 'rotate(2deg) translateX(5px)' },
+        },
+        widgetFall: {
+          '0%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' },
+          '20%': { transform: 'translateY(20vh) rotate(90deg)', opacity: '1' },
+          '80%': { transform: 'translateY(90vh) rotate(270deg)', opacity: '0.8' },
+          '100%': { transform: 'translateY(110vh) rotate(360deg)', opacity: '0' },
+        },
+        rebuild: {
+          '0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+          '50%': { transform: 'scale(1.2) rotate(0deg)', opacity: '1' },
+          '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
         },
       }
     },

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Sparkles, Coffee, Lightbulb, Send, ArrowLeft, Zap, Star, CloudLightning, Atom, Pizza, Rocket, Cat, Ghost, Music, Heart, Flame, Volume2, VolumeX, Keyboard, AlertTriangle, Skull } from 'lucide-react';
 import { GOLIATH_SYSTEM_PROMPT, CRASH_MESSAGES } from '../config/systemPrompt';
+import CrazyBot from './CrazyBot';
 
 // Avatars délirants pour le bot
 const BOT_AVATARS = ['🧠', '🤖', '🦄', '🐙', '👽', '🤡', '🎭', '🦆', '🐸', '🦊', '🐼', '🦋', '👻', '🎃', '🤠', '🧙‍♂️', '🧛', '🧞', '🦹', '🥸'];
@@ -107,6 +108,14 @@ export default function ChatBot() {
   const [drunkMode, setDrunkMode] = useState(false);
   const [confetti, setConfetti] = useState([]);
   const [crazyEvent, setCrazyEvent] = useState(null);
+  const [fallingWidgets, setFallingWidgets] = useState(false);
+  const [widgetsRebuilding, setWidgetsRebuilding] = useState(false);
+  const [fallingElements, setFallingElements] = useState([]);
+  
+  // États pour le bot animé qui court et vole des éléments
+  const [crazyBotActive, setCrazyBotActive] = useState(true);
+  const [sendButtonStolen, setSendButtonStolen] = useState(false);
+  const [stolenMessages, setStolenMessages] = useState([]); // Messages entiers volés
   
   // États pour le système de crash (détection par l'IA)
   const [isCrashing, setIsCrashing] = useState(false);
@@ -116,6 +125,43 @@ export default function ChatBot() {
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const navigate = useNavigate();
+
+  // Handlers pour le CrazyBot
+  const handleStealSendButton = () => {
+    setSendButtonStolen(true);
+    // Le bouton reste volé jusqu'à ce qu'on attrape le bot!
+  };
+
+  const handleStealMessage = () => {
+    // Voler un message entier de la conversation
+    if (messages.length <= 1) return null; // Garder au moins le message de bienvenue
+    
+    // Choisir un message aléatoire (pas le premier qui est le bienvenue)
+    const stealableMessages = messages.slice(1);
+    if (stealableMessages.length === 0) return null;
+    
+    const randomIndex = Math.floor(Math.random() * stealableMessages.length) + 1;
+    const stolenMsg = messages[randomIndex];
+    
+    if (stolenMsg) {
+      // Retirer le message de la conversation
+      setMessages(prev => prev.filter((_, idx) => idx !== randomIndex));
+      // Ajouter aux messages volés
+      setStolenMessages(prev => [...prev, stolenMsg]);
+      return stolenMsg;
+    }
+    return null;
+  };
+
+  const handleReturnItems = (items) => {
+    // Appelé quand on attrape le bot - on récupère tout!
+    setSendButtonStolen(false);
+    // Remettre les messages volés dans la conversation
+    if (stolenMessages.length > 0) {
+      setMessages(prev => [...prev, ...stolenMessages]);
+      setStolenMessages([]);
+    }
+  };
 
   // Voix disponibles pour le text-to-speech
   const getRandomVoice = () => {
@@ -158,6 +204,7 @@ export default function ChatBot() {
       { name: 'rainbow', action: () => { setRainbowMode(true); setTimeout(() => setRainbowMode(false), 4000); } },
       { name: 'laugh', action: triggerLaughExplosion },
       { name: 'scream', action: () => speakText("AAAAAAHHHHH! JE SUIS UN CHATBOT ET JE CRIE!", true) },
+      { name: 'falling', action: triggerFallingWidgets },
     ];
     
     const event = events[Math.floor(Math.random() * events.length)];
@@ -181,6 +228,38 @@ export default function ChatBot() {
     }
     setConfetti(newConfetti);
     setTimeout(() => setConfetti([]), 4000);
+  };
+
+  // Faire tomber tous les widgets vers le bas!
+  const triggerFallingWidgets = () => {
+    // Créer des éléments qui tombent
+    const widgetTypes = ['📝', '💬', '🔘', '📊', '⚙️', '🎨', '📱', '💾', '🖼️', '📋'];
+    const elements = [];
+    for (let i = 0; i < 15; i++) {
+      elements.push({
+        id: Date.now() + i,
+        emoji: widgetTypes[Math.floor(Math.random() * widgetTypes.length)],
+        left: 10 + Math.random() * 80,
+        delay: Math.random() * 0.5,
+        rotation: Math.random() * 360,
+      });
+    }
+    setFallingElements(elements);
+    setFallingWidgets(true);
+    
+    // Après 3 secondes, le CrazyBot reconstruit
+    setTimeout(() => {
+      setFallingWidgets(false);
+      setWidgetsRebuilding(true);
+      speakText("Oups! Je vais tout reconstruire... MERCI DE VOTRE PATIENCE!", true);
+      
+      // Animation de reconstruction
+      setTimeout(() => {
+        setWidgetsRebuilding(false);
+        setFallingElements([]);
+        speakText("Et voilà! Tout est réparé! ...enfin je crois. MERCI! 🙏", true);
+      }, 2500);
+    }, 3000);
   };
 
   // Initialiser avec un message de bienvenue
@@ -575,6 +654,15 @@ export default function ChatBot() {
         background: isCrashing ? '#000' : (rainbowMode ? undefined : 'linear-gradient(135deg, #1a0a2e 0%, #16213e 25%, #0f3460 50%, #1a1a2e 75%, #16213e 100%)'),
       }}>
       
+      {/* Bot animé qui court et vole des éléments */}
+      <CrazyBot
+        onStealSendButton={handleStealSendButton}
+        onStealMessage={handleStealMessage}
+        onReturnItems={handleReturnItems}
+        messagesCount={messages.length}
+        isActive={crazyBotActive && !isCrashing}
+      />
+      
       {/* Overlay de crash */}
       {isCrashing && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-glitch-heavy">
@@ -665,6 +753,45 @@ export default function ChatBot() {
           {item.emoji}
         </div>
       ))}
+
+      {/* Falling Widgets Effect */}
+      {fallingWidgets && (
+        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+          {fallingElements.map(item => (
+            <div
+              key={item.id}
+              className="absolute animate-widget-fall"
+              style={{
+                left: `${item.left}%`,
+                top: '-80px',
+                fontSize: '3rem',
+                animationDelay: `${item.delay}s`,
+                transform: `rotate(${item.rotation}deg)`,
+              }}
+            >
+              {item.emoji}
+            </div>
+          ))}
+          {/* Message de panique */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl shadow-2xl animate-pulse">
+            <p className="text-2xl font-bold">⚠️ WIDGETS EN CHUTE LIBRE! ⚠️</p>
+          </div>
+        </div>
+      )}
+
+      {/* Widget Rebuilding Animation */}
+      {widgetsRebuilding && (
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center bg-black/30">
+          <div className="text-center animate-bounce-in">
+            <div className="text-8xl mb-4 animate-spin-slow">🔧</div>
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl">
+              <p className="text-xl font-bold">🛠️ RECONSTRUCTION EN COURS...</p>
+              <p className="text-sm mt-2">Le CrazyBot répare vos widgets!</p>
+            </div>
+            <div className="mt-4 text-6xl animate-bounce">🙏 MERCI!</div>
+          </div>
+        </div>
+      )}
 
       {/* Matrix Rain Effect */}
       {matrixMode && (
@@ -883,16 +1010,51 @@ export default function ChatBot() {
               rows={1}
               disabled={isLoading}
             />
+            {/* Bouton d'envoi - peut être volé par le CrazyBot! */}
+            {sendButtonStolen ? (
+              <div className="p-3 rounded-xl bg-red-900/50 border-2 border-dashed border-red-500 text-red-400 animate-pulse">
+                <span className="text-sm">VOLÉ! 😈</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={isLoading || !input.trim()}
+                className={`p-3 rounded-xl transition-all duration-300 ${
+                  input.trim() && !isLoading
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-500/30 hover:scale-110'
+                    : 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <Send size={24} className={isLoading ? 'animate-spin' : ''} />
+              </button>
+            )}
+          </div>
+          
+          {/* Indicateur de messages volés */}
+          {stolenMessages.length > 0 && (
+            <div className="flex flex-col items-center gap-2 mt-2">
+              <span className="text-red-400 text-sm font-bold">📦 {stolenMessages.length} message(s) volé(s) - Attrapez le bot!</span>
+              <div className="flex gap-2 flex-wrap justify-center max-w-md">
+                {stolenMessages.map((msg, i) => (
+                  <div key={i} className="px-3 py-2 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300 text-xs animate-pulse max-w-[150px] truncate">
+                    {msg.role === 'user' ? '👤' : '🤖'} {msg.content.substring(0, 30)}...
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Toggle pour activer/désactiver le CrazyBot */}
+          <div className="flex justify-center mt-2">
             <button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
-              className={`p-3 rounded-xl transition-all duration-300 ${
-                input.trim() && !isLoading
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-500/30 hover:scale-110'
-                  : 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+              onClick={() => setCrazyBotActive(!crazyBotActive)}
+              className={`px-4 py-2 rounded-full text-sm transition-all ${
+                crazyBotActive 
+                  ? 'bg-green-600/30 border border-green-500 text-green-300' 
+                  : 'bg-gray-600/30 border border-gray-500 text-gray-400'
               }`}
             >
-              <Send size={24} className={isLoading ? 'animate-spin' : ''} />
+              {crazyBotActive ? '🏃 Bot Voleur: ACTIF' : '😴 Bot Voleur: INACTIF'}
             </button>
           </div>
           
