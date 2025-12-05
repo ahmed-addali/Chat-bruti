@@ -93,6 +93,7 @@ export default function ChatBot() {
   const [botAvatar, setBotAvatar] = useState(BOT_AVATARS[0]);
   const [userAvatar, setUserAvatar] = useState(USER_AVATARS[0]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [speechEnabled, setSpeechEnabled] = useState(true);
   const [currentKeyboardLayout, setCurrentKeyboardLayout] = useState(null);
   const [showKeyboardNotification, setShowKeyboardNotification] = useState(false);
   const [keyboardNotificationText, setKeyboardNotificationText] = useState('');
@@ -101,6 +102,11 @@ export default function ChatBot() {
   const [screenShake, setScreenShake] = useState(false);
   const [rainbowMode, setRainbowMode] = useState(false);
   const [laughingEmojis, setLaughingEmojis] = useState([]);
+  const [screenFlip, setScreenFlip] = useState(false);
+  const [matrixMode, setMatrixMode] = useState(false);
+  const [drunkMode, setDrunkMode] = useState(false);
+  const [confetti, setConfetti] = useState([]);
+  const [crazyEvent, setCrazyEvent] = useState(null);
   
   // États pour le système de crash (détection par l'IA)
   const [isCrashing, setIsCrashing] = useState(false);
@@ -110,6 +116,72 @@ export default function ChatBot() {
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const navigate = useNavigate();
+
+  // Voix disponibles pour le text-to-speech
+  const getRandomVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) return null;
+    // Préférer les voix françaises si disponibles
+    const frenchVoices = voices.filter(v => v.lang.includes('fr'));
+    const availableVoices = frenchVoices.length > 0 ? frenchVoices : voices;
+    return availableVoices[Math.floor(Math.random() * availableVoices.length)];
+  };
+
+  // Faire parler le bot avec des paramètres fous
+  const speakText = (text, crazy = true) => {
+    if (!speechEnabled || !window.speechSynthesis) return;
+    
+    // Annuler toute parole en cours
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = getRandomVoice();
+    
+    if (crazy) {
+      // Paramètres fous aléatoires
+      utterance.rate = 0.5 + Math.random() * 1.5; // Vitesse: 0.5 à 2
+      utterance.pitch = 0.5 + Math.random() * 1.5; // Tonalité: 0.5 à 2
+      utterance.volume = 0.7 + Math.random() * 0.3;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Événements fous aléatoires
+  const triggerRandomCrazyEvent = () => {
+    const events = [
+      { name: 'flip', action: () => { setScreenFlip(true); setTimeout(() => setScreenFlip(false), 3000); } },
+      { name: 'matrix', action: () => { setMatrixMode(true); setTimeout(() => setMatrixMode(false), 5000); } },
+      { name: 'drunk', action: () => { setDrunkMode(true); setTimeout(() => setDrunkMode(false), 4000); } },
+      { name: 'confetti', action: triggerConfetti },
+      { name: 'shake', action: () => { setScreenShake(true); setTimeout(() => setScreenShake(false), 2000); } },
+      { name: 'rainbow', action: () => { setRainbowMode(true); setTimeout(() => setRainbowMode(false), 4000); } },
+      { name: 'laugh', action: triggerLaughExplosion },
+      { name: 'scream', action: () => speakText("AAAAAAHHHHH! JE SUIS UN CHATBOT ET JE CRIE!", true) },
+    ];
+    
+    const event = events[Math.floor(Math.random() * events.length)];
+    setCrazyEvent(event.name);
+    event.action();
+    setTimeout(() => setCrazyEvent(null), 1000);
+  };
+
+  // Confetti explosion
+  const triggerConfetti = () => {
+    const colors = ['🎉', '🎊', '✨', '⭐', '💫', '🌟', '🎈', '🎁', '🥳'];
+    const newConfetti = [];
+    for (let i = 0; i < 30; i++) {
+      newConfetti.push({
+        id: Date.now() + i,
+        emoji: colors[Math.floor(Math.random() * colors.length)],
+        left: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 2 + Math.random() * 2,
+      });
+    }
+    setConfetti(newConfetti);
+    setTimeout(() => setConfetti([]), 4000);
+  };
 
   // Initialiser avec un message de bienvenue
   useEffect(() => {
@@ -437,8 +509,17 @@ export default function ChatBot() {
       triggerLaughExplosion();
     }
 
+    // Chance de déclencher un événement fou
+    if (Math.random() > 0.6) {
+      triggerRandomCrazyEvent();
+    }
+
     playReceiveSound(); // Son de réception
     setMessages(prev => [...prev, { role: 'assistant', content: response, avatar: botAvatar }]);
+    
+    // Faire parler le bot (avec des paramètres fous)
+    speakText(response, true);
+    
     setIsLoading(false);
     setPulseEffect(false);
     setChaosMode(false);
@@ -568,6 +649,42 @@ export default function ChatBot() {
         </div>
       ))}
 
+      {/* Confetti */}
+      {confetti.map(item => (
+        <div
+          key={item.id}
+          className="fixed pointer-events-none z-50 animate-confetti-fall"
+          style={{
+            left: `${item.left}%`,
+            top: '-50px',
+            fontSize: '2rem',
+            animationDelay: `${item.delay}s`,
+            animationDuration: `${item.duration}s`,
+          }}
+        >
+          {item.emoji}
+        </div>
+      ))}
+
+      {/* Matrix Rain Effect */}
+      {matrixMode && (
+        <div className="fixed inset-0 z-40 pointer-events-none overflow-hidden bg-black/50">
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute text-green-500 font-mono text-xl animate-matrix-fall"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1 + Math.random() * 2}s`,
+              }}
+            >
+              {String.fromCharCode(0x30A0 + Math.random() * 96)}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Notification de tip fou */}
       {showCrazyTip && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-slide-down">
@@ -592,8 +709,22 @@ export default function ChatBot() {
         </div>
       )}
 
+      {/* Crazy Event Indicator */}
+      {crazyEvent && (
+        <div className="fixed bottom-10 right-10 z-50 animate-bounce">
+          <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-full font-bold">
+            🎪 {crazyEvent.toUpperCase()}!
+          </div>
+        </div>
+      )}
+
       {/* Container principal */}
-      <div className="relative z-10 flex flex-col h-screen max-w-4xl mx-auto p-4">
+      <div 
+        className={`relative z-10 flex flex-col h-screen max-w-4xl mx-auto p-4 transition-all duration-500
+          ${screenFlip ? 'rotate-180' : ''}
+          ${drunkMode ? 'animate-drunk' : ''}
+        `}
+      >
         
         {/* Header délirant */}
         <div className="relative mb-4">
@@ -617,7 +748,7 @@ export default function ChatBot() {
             </p>
           </div>
 
-          {/* Contrôles sons + indicateur clavier */}
+          {/* Contrôles sons + parole + indicateur clavier */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {currentKeyboardLayout && (
               <div className="px-3 py-1 rounded-full bg-red-500/30 border border-red-500 text-red-300 text-xs animate-pulse">
@@ -625,15 +756,33 @@ export default function ChatBot() {
                 {currentKeyboardLayout.name}
               </div>
             )}
+            {/* Toggle Parole */}
+            <button
+              onClick={() => setSpeechEnabled(!speechEnabled)}
+              className="p-2 rounded-full bg-green-600/30 hover:bg-green-500/50 transition-all border border-green-500/30"
+              title={speechEnabled ? "Désactiver la parole" : "Activer la parole"}
+            >
+              <span className="text-xl">{speechEnabled ? '🗣️' : '🤐'}</span>
+            </button>
+            {/* Toggle Son */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2 rounded-full bg-purple-600/30 hover:bg-purple-500/50 transition-all border border-purple-500/30"
+              title={soundEnabled ? "Désactiver les sons" : "Activer les sons"}
             >
               {soundEnabled ? (
                 <Volume2 className="text-purple-300" size={20} />
               ) : (
                 <VolumeX className="text-gray-500" size={20} />
               )}
+            </button>
+            {/* Bouton événement fou manuel */}
+            <button
+              onClick={triggerRandomCrazyEvent}
+              className="p-2 rounded-full bg-pink-600/30 hover:bg-pink-500/50 transition-all border border-pink-500/30 animate-pulse"
+              title="Déclencher un événement fou!"
+            >
+              <span className="text-xl">🎲</span>
             </button>
           </div>
 
