@@ -204,27 +204,43 @@ export default function ChatBot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Jouer un son de rire
+  // Jouer un son de rire cartoon (HA-HA-HA)
   const playLaughSound = () => {
     if (soundEnabled) {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
         
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
-        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.2);
-        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.4);
+        // Créer un rire "HA-HA-HA" avec plusieurs notes
+        const laughNotes = [
+          { freq: 600, time: 0, duration: 0.12 },
+          { freq: 500, time: 0.15, duration: 0.12 },
+          { freq: 650, time: 0.30, duration: 0.12 },
+          { freq: 480, time: 0.45, duration: 0.12 },
+          { freq: 700, time: 0.60, duration: 0.15 },
+        ];
+
+        laughNotes.forEach(note => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          // Type d'onde pour un son plus drôle
+          oscillator.type = 'square';
+          
+          // Fréquence qui monte puis descend (comme un rire)
+          oscillator.frequency.setValueAtTime(note.freq, audioContext.currentTime + note.time);
+          oscillator.frequency.exponentialRampToValueAtTime(note.freq * 1.3, audioContext.currentTime + note.time + note.duration * 0.3);
+          oscillator.frequency.exponentialRampToValueAtTime(note.freq * 0.7, audioContext.currentTime + note.time + note.duration);
+          
+          // Volume avec decay
+          gainNode.gain.setValueAtTime(0.15, audioContext.currentTime + note.time);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + note.time + note.duration);
+          
+          oscillator.start(audioContext.currentTime + note.time);
+          oscillator.stop(audioContext.currentTime + note.time + note.duration + 0.05);
+        });
       } catch (e) {
         console.log('Audio not supported');
       }
@@ -250,6 +266,46 @@ export default function ChatBot() {
     setTimeout(() => setLaughingEmojis([]), 2000);
   };
 
+  // Son d'envoi de message (pop)
+  const playMessageSound = () => {
+    if (soundEnabled) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.05);
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {}
+    }
+  };
+
+  // Son de réception de message (ding)
+  const playReceiveSound = () => {
+    if (soundEnabled) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523, audioContext.currentTime); // Do
+        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1); // Mi
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+      } catch (e) {}
+    }
+  };
+
   // Déclencher le crash (appelé quand l'IA détecte un mot interdit)
   const triggerCrash = () => {
     setIsCrashing(true);
@@ -257,20 +313,36 @@ export default function ChatBot() {
     setGlitchIntensity(5);
     setScreenShake(true);
     
-    // Son de crash
+    // Son de crash dramatique (descente de fréquence + bruit)
     if (soundEnabled) {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        for (let i = 0; i < 5; i++) {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          oscillator.frequency.setValueAtTime(100 + Math.random() * 500, audioContext.currentTime + i * 0.1);
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + i * 0.1);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.1 + 0.2);
-          oscillator.start(audioContext.currentTime + i * 0.1);
-          oscillator.stop(audioContext.currentTime + i * 0.1 + 0.2);
+        
+        // Son principal de crash (descente dramatique)
+        const crashOsc = audioContext.createOscillator();
+        const crashGain = audioContext.createGain();
+        crashOsc.connect(crashGain);
+        crashGain.connect(audioContext.destination);
+        crashOsc.type = 'sawtooth';
+        crashOsc.frequency.setValueAtTime(800, audioContext.currentTime);
+        crashOsc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 1.5);
+        crashGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        crashGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+        crashOsc.start(audioContext.currentTime);
+        crashOsc.stop(audioContext.currentTime + 1.5);
+        
+        // Bips d'erreur
+        for (let i = 0; i < 8; i++) {
+          const beepOsc = audioContext.createOscillator();
+          const beepGain = audioContext.createGain();
+          beepOsc.connect(beepGain);
+          beepGain.connect(audioContext.destination);
+          beepOsc.type = 'square';
+          beepOsc.frequency.setValueAtTime(200 + Math.random() * 400, audioContext.currentTime + i * 0.15);
+          beepGain.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.15);
+          beepGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.15 + 0.1);
+          beepOsc.start(audioContext.currentTime + i * 0.15);
+          beepOsc.stop(audioContext.currentTime + i * 0.15 + 0.12);
         }
       } catch (e) {}
     }
@@ -329,6 +401,7 @@ export default function ChatBot() {
     
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage, avatar: userAvatar }]);
+    playMessageSound(); // Son d'envoi
     setIsLoading(true);
     setPulseEffect(true);
     setChaosMode(true);
@@ -364,6 +437,7 @@ export default function ChatBot() {
       triggerLaughExplosion();
     }
 
+    playReceiveSound(); // Son de réception
     setMessages(prev => [...prev, { role: 'assistant', content: response, avatar: botAvatar }]);
     setIsLoading(false);
     setPulseEffect(false);
